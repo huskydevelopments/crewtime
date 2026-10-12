@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crew Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAEEF2; --surface:#FFFFFF; --ink:#0E1B2B; --muted:#5A6A7B; --line:#D8DFE6;
+  --bar:#1B2E45;
+  --hero:#0F1F31; --hero-ink:#F3F6F9; --hero-muted:#9DB0C3; --hero-line:rgba(255,255,255,.16);
+  --go:#FFC629; --go-ink:#0E1B2B; --live:#34D07F; --stop:#E5483B; --stop-text:#B3261A; --focus:#2F7BEF;
+  box-sizing:border-box;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0A111A; --surface:#121D2B; --ink:#EEF2F6; --muted:#93A3B4; --line:#233245;
+    --bar:#5F7A98; --hero:#14283F; --stop-text:#FF8478; --focus:#6AA5FF;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0A111A; --surface:#121D2B; --ink:#EEF2F6; --muted:#93A3B4; --line:#233245;
+  --bar:#5F7A98; --hero:#14283F; --stop-text:#FF8478; --focus:#6AA5FF;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font:500 17px/1.4 "Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:540px;margin:0 auto;padding-bottom:40px}
+[hidden]{display:none!important}
+
+/* ---------- Hero ---------- */
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:0 0 32px 32px;padding:calc(18px + env(safe-area-inset-top,0px)) 20px 26px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-stretch:118%;font-weight:700;font-size:17px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.09);font-weight:600;font-size:14px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--hero-muted);flex:none}
+.live .dot{background:var(--live);animation:pulse 2.2s ease-out infinite}
+.brk .dot{background:var(--go)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,208,127,.55)}70%,100%{box-shadow:0 0 0 8px rgba(52,208,127,0)}}
+.hello{margin:22px 0 0}
+.hello h1{font-stretch:118%;font-weight:700;font-size:26px;line-height:1.1;letter-spacing:-.01em;margin:0 0 4px}
+.hello p{margin:0;color:var(--hero-muted)}
+
+.ring{--ring:min(66vw,252px);position:relative;width:var(--ring);height:var(--ring);margin:18px auto 14px}
+.ring svg{width:100%;height:100%;display:block;overflow:visible}
+.trk{fill:none;stroke:rgba(255,255,255,.07);stroke-width:8}
+.arc{fill:none;stroke:var(--go);stroke-width:8;stroke-linecap:round;transition:stroke-dasharray .5s ease}
+.tk{stroke:rgba(255,255,255,.2);stroke-width:2;stroke-linecap:round}
+.tk.l{stroke:rgba(255,255,255,.36);stroke-width:3}
+.tk.on{stroke:var(--go)}
+.tk.now{stroke:#FFFFFF}
+.brk .arc,.brk .tk.on{stroke:var(--hero-muted)}
+.intro .tk{animation:tkin .4s both;animation-delay:calc(var(--i) * 9ms)}
+@keyframes tkin{from{opacity:0}to{opacity:1}}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.rm{font-size:calc(var(--ring) * .2);font-stretch:88%;font-weight:700;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rm.sm{font-size:calc(var(--ring) * .15)}
+.rs{font-size:.46em;color:var(--hero-muted);margin-left:3px;font-weight:600}
+.rc{margin-top:8px;font-size:14px;color:var(--hero-muted);font-weight:600;max-width:70%}
+
+.ask{margin:0 0 10px;text-align:center;color:var(--hero-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{min-height:48px;padding:0 18px;border-radius:999px;border:1.5px solid var(--hero-line);background:transparent;color:var(--hero-ink);font-weight:600}
+.chip[aria-checked="true"]{background:#F3F6F9;border-color:#F3F6F9;color:#0F1F31}
+.chip.add{border-style:dashed;color:var(--hero-muted)}
+.addrow{display:flex;gap:8px;margin-top:12px}
+.addrow input{flex:1;min-width:0}
+.hero input[type=text]{background:rgba(255,255,255,.07);border-color:var(--hero-line);color:var(--hero-ink)}
+.hero input::placeholder{color:var(--hero-muted)}
+.msg{min-height:1.4em;margin:10px 0 0;font-weight:600;text-align:center}
+.hero .msg{color:#FF8478}
+.where{text-align:center;margin:0 0 14px}
+.where strong{display:block;font-stretch:112%;font-size:20px;font-weight:700}
+.where span{color:var(--hero-muted);font-size:15px}
+.btnrow{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;margin-top:12px}
+
+/* ---------- Controls ---------- */
+input[type=text],input[type=number],input[type=datetime-local],textarea{width:100%;min-height:52px;padding:10px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+.btn{min-height:56px;padding:0 20px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-stretch:104%}
+.btn:active{transform:translateY(1px)}
+.btn.small{min-height:44px;padding:0 14px;border-radius:12px}
+.btn.primary{background:var(--go);border-color:var(--go);color:var(--go-ink)}
+.btn.glow{box-shadow:0 12px 26px -12px rgba(255,198,41,.75)}
+.btn.danger{background:var(--stop);border-color:var(--stop);color:#fff}
+.btn.onhero{background:rgba(255,255,255,.1);border-color:transparent;color:var(--hero-ink)}
+.btn.outline-danger{color:var(--stop-text);border-color:var(--stop)}
+.btn.big{width:100%;min-height:68px;font-size:21px;font-stretch:112%;margin-top:18px;border-radius:20px}
+.btnrow .btn.big{margin-top:0;min-height:64px;font-size:19px}
+
+/* ---------- Week ---------- */
+.week{padding:26px 16px 0}
+.week-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.week-head h2{font-stretch:118%;font-weight:700;font-size:21px;margin:0;flex:1;text-align:center}
+.nav{width:48px;height:48px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.nav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.nav:disabled{opacity:.35;cursor:default}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:22px}
+.summary{padding:20px 18px 14px}
+.big{font-size:52px;line-height:1;font-stretch:88%;font-weight:700;letter-spacing:-.01em}
+.mut{color:var(--muted);font-weight:600;margin-top:4px}
+.plot{position:relative;height:100px;display:flex;gap:8px;align-items:flex-end;margin-top:18px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.bv{font-size:11px;line-height:16px;height:16px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600}
+.bar{width:100%;max-width:30px;border-radius:9px 9px 4px 4px;background:var(--bar)}
+.bar.zero{height:3px!important;opacity:.3;border-radius:2px}
+.bar.today{background:var(--go);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.target{position:absolute;left:0;right:0;border-top:1.5px dashed var(--line);pointer-events:none}
+.target span{position:absolute;right:0;top:-17px;font-size:11px;color:var(--muted);font-weight:600}
+.letters{display:flex;gap:8px;margin-top:8px}
+.letters span{flex:1;text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+.letters span.today{color:var(--ink);font-weight:800}
+
+.list{margin-top:12px;overflow:hidden}
+.dg{padding:12px 14px 10px;border-top:1px solid var(--line)}
+.dg:first-child{border-top:0}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:28px}
+.dn{font-weight:700;display:flex;align-items:center;gap:8px}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--go);color:var(--go-ink)}
+.dt{color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.dg.empty{padding-top:8px;padding-bottom:8px}
+.dg.empty .dn{color:var(--muted);font-weight:600}
+.shift{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;width:100%;margin-top:8px;padding:10px 12px;border-radius:14px;border:0;background:var(--paper);text-align:left;min-height:60px}
+.st{font-weight:700;font-variant-numeric:tabular-nums}
+.ss{grid-column:1;color:var(--muted);font-size:15px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd{grid-column:2;grid-row:1 / span 2;display:flex;align-items:center;gap:6px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sd svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.actions .btn{padding:0 10px}
+
+details.settings{margin:18px 16px 0;padding:0 16px}
+details.settings summary{min-height:56px;display:flex;align-items:center;justify-content:space-between;font-weight:700;cursor:pointer;list-style:none}
+details.settings summary::-webkit-details-marker{display:none}
+details.settings summary::after{content:"+";font-size:24px;color:var(--muted);font-weight:500}
+details.settings[open] summary::after{content:"\2212"}
+details.settings .body{padding-bottom:16px}
+.flabel{display:block;font-weight:600;margin:14px 0 8px}
+.siterow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.fine{color:var(--muted);font-size:15px;margin:0}
+
+.banner{background:var(--go);color:var(--go-ink);padding:10px 18px;font-weight:600;text-align:center}
+
+/* ---------- Bottom sheet dialog ---------- */
+dialog{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:28px 28px 0 0;background:var(--surface);color:var(--ink);padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));max-height:92%}
+dialog::backdrop{background:rgba(5,10,16,.62)}
+@media (min-width:600px){dialog{margin:auto;border-radius:28px}}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+dialog h3{font-stretch:118%;font-weight:700;font-size:24px;margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dlg-err{min-height:1.4em;margin:12px 0 0;color:var(--stop-text);font-weight:600}
+.dlg-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.dlg-actions .primary{grid-column:1 / -1}
+
+/* ---------- Toast ---------- */
+#toast{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:512px;margin:0 auto;background:var(--ink);color:var(--surface);border-radius:16px;padding:12px 14px 12px 18px;display:none;align-items:center;justify-content:space-between;gap:12px;font-weight:600;z-index:10;box-shadow:0 14px 32px -14px rgba(0,0,0,.6)}
+#toast.show{display:flex}
+#toast button{min-height:44px;padding:0 18px;border-radius:12px;border:0;background:var(--go);color:var(--go-ink);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){
+  .intro .tk{animation:none}.live .dot{animation:none}.arc{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="banner" class="banner" hidden>Saving is turned off in this browser. Your shifts will be lost when you close this page.</div>
+
+  <section class="hero" id="clock" aria-live="polite"></section>
+
+  <section class="week" aria-label="Weekly timesheet">
+    <div class="week-head">
+      <button class="nav" data-action="prev" aria-label="Previous week"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2 id="weekLabel"></h2>
+      <button class="nav" id="nextBtn" data-action="next" aria-label="Next week"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="sheet summary">
+      <div class="big" id="weekTotal">0h 00m</div>
+      <div class="mut" id="weekDec">0.00 hours</div>
+      <div id="chart"></div>
+    </div>
+    <div class="sheet list" id="days"></div>
+    <div class="actions">
+      <button class="btn" data-action="add">Add missed shift</button>
+      <button class="btn primary" data-action="copy">Copy timesheet</button>
+    </div>
+  </section>
+
+  <details class="sheet settings">
+    <summary>Your name and sites</summary>
+    <div class="body">
+      <label class="flabel" for="nameInput">Your name (shown on the copied timesheet)</label>
+      <input type="text" id="nameInput" autocomplete="name">
+      <span class="flabel">Saved sites</span>
+      <div id="siteList"></div>
+    </div>
+  </details>
+</div>
+
+<div id="toast" role="status"><span id="toastMsg"></span><button id="toastBtn" hidden>Undo</button></div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <div class="grab"></div>
+  <h3 id="dlgTitle">Edit shift</h3>
+  <label class="flabel" for="fSite">Site</label>
+  <input type="text" id="fSite" list="siteOptions" autocomplete="off">
+  <datalist id="siteOptions"></datalist>
+  <div class="two">
+    <div><label class="flabel" for="fStart">Start</label><input type="datetime-local" id="fStart"></div>
+    <div><label class="flabel" for="fEnd">Finish</label><input type="datetime-local" id="fEnd"></div>
+  </div>
+  <label class="flabel" for="fBreak">Unpaid break (minutes)</label>
+  <input type="number" id="fBreak" min="0" step="5" inputmode="numeric">
+  <label class="flabel" for="fNote">Note (optional)</label>
+  <textarea id="fNote"></textarea>
+  <p class="dlg-err" id="dlgErr" role="alert"></p>
+  <div class="dlg-actions">
+    <button class="btn primary" id="saveBtn">Save shift</button>
+    <button class="btn" id="cancelBtn">Cancel</button>
+    <button class="btn outline-danger" id="delBtn">Delete shift</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var KEY = 'crewtime.v1', SHIFT = 8 * 3600000, RING_R = 118, RING_C = 2 * Math.PI * RING_R;
+  var state = { name:'', sites:[], entries:[], active:null, lastSite:'' };
+  var weekOffset = 0, addingSite = false, clockMsg = '', editingId = null, toastTimer = null, undoFn = null, storageOk = true, intro = true;
+
+  function $(s){ return document.querySelector(s); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function load(){
+    try {
+      localStorage.setItem(KEY + '.test','1'); localStorage.removeItem(KEY + '.test');
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var s = JSON.parse(raw); for (var k in s) state[k] = s[k]; }
+    } catch(e){ storageOk = false; }
+    if (!Array.isArray(state.sites)) state.sites = [];
+    if (!Array.isArray(state.entries)) state.entries = [];
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){ storageOk = false; $('#banner').hidden = false; }
+  }
+
+  /* ---------- time helpers ---------- */
+  function hm(ms){ var m = Math.round(Math.max(0,ms)/60000); return Math.floor(m/60) + 'h ' + pad(m%60) + 'm'; }
+  function dec(ms){ return (Math.max(0,ms)/3600000).toFixed(2); }
+  function mins(ms){ return Math.round(Math.max(0,ms)/60000) + ' min'; }
+  function tm(t){ return new Date(t).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }
+  function dayLabel(d){ return d.toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'}); }
+  function shortDate(d){ return d.toLocaleDateString([], {day:'numeric', month:'short'}); }
+  function toLocalInput(t){ var d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function startOfWeek(d){ var x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay()+6)%7)); return x; }
+  function net(e){ return Math.max(0, e.end - e.start - (e.breakMs || 0)); }
+  function range(){
+    var ws = startOfWeek(new Date()); ws.setDate(ws.getDate() + weekOffset*7);
+    var we = new Date(ws); we.setDate(we.getDate() + 7);
+    return { ws: ws, we: we };
+  }
+  function breakTotal(now){ var a = state.active; return a ? (a.breakMs || 0) + (a.breakStart ? now - a.breakStart : 0) : 0; }
+  function activeNet(now){ var a = state.active; return a ? Math.max(0, now - a.start - breakTotal(now)) : 0; }
+  function greeting(){
+    var h = new Date().getHours(), g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    var n = (state.name || '').trim().split(' ')[0];
+    return g + (n ? ', ' + esc(n) : '');
+  }
+
+  /* ---------- gauge ---------- */
+  function ringSVG(){
+    var s = '<svg viewBox="0 0 260 260" aria-hidden="true" class="' + (intro ? 'intro' : '') + '">';
+    s += '<circle class="trk" cx="130" cy="130" r="' + RING_R + '"/>';
+    s += '<circle class="arc" cx="130" cy="130" r="' + RING_R + '" stroke-dasharray="0 ' + RING_C + '" transform="rotate(-90 130 130)"/>';
+    for (var i = 0; i < 60; i++) {
+      var ang = i * 6 * Math.PI / 180, long = i % 5 === 0, r1 = long ? 92 : 98, r2 = 108;
+      var x1 = (130 + r1 * Math.sin(ang)).toFixed(2), y1 = (130 - r1 * Math.cos(ang)).toFixed(2);
+      var x2 = (130 + r2 * Math.sin(ang)).toFixed(2), y2 = (130 - r2 * Math.cos(ang)).toFixed(2);
+      s += '<line class="tk' + (long ? ' l' : '') + '" style="--i:' + i + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+    }
+    return s + '</svg>';
+  }
+  function clockText(){
+    var t = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    return t;
+  }
+
+  function renderClock(){
+    var a = state.active, el = $('#clock'), html;
+    el.className = 'hero' + (a ? (a.breakStart ? ' brk' : ' live') : '');
+    var pill = a ? (a.breakStart ? 'On break' : 'On the clock') : 'Off the clock';
+    var top = '<div class="top"><div class="brand">' +
+      '<svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#FFC629"/><path d="M14 7v7.5l4.5 3" stroke="#0E1B2B" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Crew Time</div>' +
+      '<div class="pill"><i class="dot"></i>' + pill + '</div></div>' +
+      '<div class="hello"><h1>' + greeting() + '</h1><p>' + new Date().toLocaleDateString([], {weekday:'long', day:'numeric', month:'long'}) + '</p></div>';
+
+    if (!a) {
+      var sel = state.lastSite && state.sites.indexOf(state.lastSite) > -1 ? state.lastSite : '';
+      var chips = state.sites.map(function(s){
+        return '<button type="button" class="chip" role="radio" aria-checked="' + (s === sel) + '" data-action="pick" data-site="' + esc(s) + '">' + esc(s) + '</button>';
+      }).join('');
+      chips += '<button type="button" class="chip add" data-action="newsite">+ Add site</button>';
+      var ct = clockText();
+      html = top +
+        '<div class="ring" id="ring">' + ringSVG() + '<div class="center"><div class="rm' + (ct.length > 5 ? ' sm' : '') + '" id="rmain">' + ct + '</div><div class="rc">' + (state.sites.length ? 'Ready to clock in' : 'Add a site to begin') + '</div></div></div>' +
+        '<p class="ask" id="siteLbl">' + (state.sites.length ? 'Where are you working today?' : 'Where are you working?') + '</p>' +
+        '<div class="chips" role="radiogroup" aria-labelledby="siteLbl">' + chips + '</div>' +
+        (addingSite ? '<div class="addrow"><input type="text" id="newSite" placeholder="Site name or address" autocomplete="off" aria-label="New site name"><button class="btn small primary" data-action="savesite">Add</button></div>' : '') +
+        '<p class="msg" role="alert">' + esc(clockMsg) + '</p>' +
+        '<button class="btn primary big glow" data-action="in">Clock in</button>';
+    } else {
+      var onBreak = !!a.breakStart, now = Date.now(), bt = breakTotal(now);
+      html = top +
+        '<div class="ring" id="ring">' + ringSVG() + '<div class="center"><div class="rm"><span id="rmain">00:00</span><span class="rs" id="rsec">:00</span></div><div class="rc" id="rcap"></div></div></div>' +
+        '<div class="where"><strong>' + esc(a.site) + '</strong><span id="meta"></span></div>' +
+        '<input type="text" id="liveNote" value="' + esc(a.note || '') + '" placeholder="Add a note (optional)" autocomplete="off" aria-label="Note for this shift">' +
+        '<div class="btnrow">' +
+          '<button class="btn onhero big" data-action="break">' + (onBreak ? 'End break' : 'Start break') + '</button>' +
+          '<button class="btn danger big" data-action="out">Clock out</button>' +
+        '</div>';
+    }
+    el.innerHTML = html;
+    intro = false;
+    if (addingSite && !a) { var ni = $('#newSite'); if (ni) ni.focus(); }
+    tick();
+  }
+
+  function tick(){
+    var svg = document.querySelector('#ring svg'); if (!svg) return;
+    var a = state.active, now = Date.now();
+    var ticks = svg.querySelectorAll('.tk'), arc = svg.querySelector('.arc'), i;
+    if (a) {
+      var ms = activeNet(now), f = Math.min(1, ms / SHIFT), lit = Math.floor(f * 60);
+      arc.setAttribute('stroke-dasharray', (f * RING_C).toFixed(1) + ' ' + RING_C.toFixed(1));
+      for (i = 0; i < ticks.length; i++) { ticks[i].classList.toggle('on', i < lit); ticks[i].classList.remove('now'); }
+      var tot = Math.floor(ms / 1000), h = Math.floor(tot / 3600), m = Math.floor(tot % 3600 / 60), s = tot % 60;
+      var rm = $('#rmain'), rs = $('#rsec'), rc = $('#rcap'), meta = $('#meta');
+      if (rm) rm.textContent = pad(h) + ':' + pad(m);
+      if (rs) rs.textContent = ':' + pad(s);
+      if (rc) rc.textContent = a.breakStart ? 'Timer paused' : (ms > SHIFT ? hm(ms - SHIFT) + ' past 8 hours' : 'of an 8 hour shift');
+      if (meta) { var bt = breakTotal(now); meta.textContent = 'Started ' + tm(a.start) + (bt >= 30000 ? ' \u00b7 Break ' + mins(bt) : ''); }
+    } else {
+      arc.setAttribute('stroke-dasharray', '0 ' + RING_C.toFixed(1));
+      var sec = new Date().getSeconds();
+      for (i = 0; i < ticks.length; i++) { ticks[i].classList.remove('on'); ticks[i].classList.toggle('now', i === sec); }
+      var r2 = $('#rmain'); if (r2) { var ct = clockText(); r2.textContent = ct; r2.classList.toggle('sm', ct.length > 5); }
+    }
+  }
+
+  /* ---------- week ---------- */
+  function renderWeek(){
+    var r = range(), ws = r.ws, we = r.we;
+    var es = state.entries.filter(function(e){ return e.start >= ws.getTime() && e.start < we.getTime(); })
+                          .sort(function(a,b){ return a.start - b.start; });
+    var total = es.reduce(function(s,e){ return s + net(e); }, 0);
+    var last = new Date(we); last.setDate(last.getDate() - 1);
+    $('#weekLabel').textContent = weekOffset === 0 ? 'This week' : shortDate(ws) + ' \u2013 ' + shortDate(last);
+    $('#weekTotal').textContent = hm(total);
+    $('#weekDec').textContent = dec(total) + ' hours';
+    $('#nextBtn').disabled = weekOffset >= 0;
+
+    var todayIdx = weekOffset === 0 ? (new Date().getDay() + 6) % 7 : -1;
+    var out = '', totals = [], letters = ['M','T','W','T','F','S','S'];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(ws); d.setDate(d.getDate() + i);
+      var d2 = new Date(d); d2.setDate(d2.getDate() + 1);
+      var de = es.filter(function(e){ return e.start >= d.getTime() && e.start < d2.getTime(); });
+      var dt = de.reduce(function(s,e){ return s + net(e); }, 0);
+      totals.push(dt);
+      var tag = i === todayIdx ? '<span class="tag">Today</span>' : '';
+      if (!de.length) {
+        out += '<div class="dg empty"><div class="dh"><span class="dn">' + dayLabel(d) + tag + '</span><span class="dt">No shifts</span></div></div>';
+        continue;
+      }
+      out += '<div class="dg"><div class="dh"><span class="dn">' + dayLabel(d) + tag + '</span><span class="dt">' + (de.length > 1 ? hm(dt) : '') + '</span></div>';
+      de.forEach(function(e){
+        out += '<button class="shift" data-action="edit" data-id="' + esc(e.id) + '">' +
+          '<span class="st">' + tm(e.start) + ' \u2013 ' + tm(e.end) + '</span>' +
+          '<span class="ss">' + esc(e.site) + (e.breakMs ? ' \u00b7 ' + Math.round(e.breakMs/60000) + ' min break' : '') + (e.note ? ' \u00b7 ' + esc(e.note) : '') + '</span>' +
+          '<span class="sd">' + hm(net(e)) + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span></button>';
+      });
+      out += '</div>';
+    }
+    $('#days').innerHTML = out;
+
+    var maxH = Math.max.apply(null, totals.map(function(t){ return t / 3600000; }).concat([0]));
+    var scale = Math.max(10, Math.ceil(maxH)), PH = 80;
+    var bars = totals.map(function(t, i){
+      var h = t / 3600000, px = Math.max(h > 0 ? 4 : 0, Math.round(h / scale * PH));
+      return '<div class="col"><span class="bv">' + (h > 0 ? h.toFixed(1) : '') + '</span><div class="bar' + (i === todayIdx ? ' today' : '') + (h > 0 ? '' : ' zero') + '" style="height:' + px + 'px"></div></div>';
+    }).join('');
+    var tgt = Math.round(8 / scale * PH);
+    var lets = letters.map(function(l, i){ return '<span' + (i === todayIdx ? ' class="today"' : '') + '>' + l + '</span>'; }).join('');
+    $('#chart').innerHTML = '<div class="plot" role="img" aria-label="Hours per day this week">' + '<div class="target" style="bottom:' + tgt + 'px"><span>8h</span></div>' + bars + '</div><div class="letters">' + lets + '</div>';
+  }
+
+  function renderSettings(){
+    var ni = $('#nameInput'); if (document.activeElement !== ni) ni.value = state.name || '';
+    $('#siteList').innerHTML = state.sites.length ? state.sites.map(function(s){
+      return '<div class="siterow"><span>' + esc(s) + '</span><button class="btn small" data-action="rmsite" data-site="' + esc(s) + '" aria-label="Remove ' + esc(s) + '">Remove</button></div>';
+    }).join('') : '<p class="fine">No sites saved yet.</p>';
+    $('#siteOptions').innerHTML = state.sites.map(function(s){ return '<option value="' + esc(s) + '">'; }).join('');
+  }
+
+  function renderAll(){ renderClock(); renderWeek(); renderSettings(); }
+
+  /* ---------- toast ---------- */
+  function toast(msg, undo){
+    $('#toastMsg').textContent = msg;
+    var b = $('#toastBtn'); b.hidden = !undo; undoFn = undo || null;
+    $('#toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ $('#toast').classList.remove('show'); undoFn = null; }, undo ? 9000 : 3500);
+  }
+  $('#toastBtn').addEventListener('click', function(){
+    if (undoFn) { var f = undoFn; undoFn = null; f(); }
+    $('#toast').classList.remove('show');
+  });
+
+  /* ---------- actions ---------- */
+  function addSite(name){
+    name = (name || '').trim();
+    if (!name) return '';
+    var found = state.sites.filter(function(s){ return s.toLowerCase() === name.toLowerCase(); })[0];
+    if (found) return found;
+    state.sites.push(name);
+    return name;
+  }
+
+  function clockIn(){
+    var sel = state.lastSite && state.sites.indexOf(state.lastSite) > -1 ? state.lastSite : '';
+    if (!sel) { clockMsg = state.sites.length ? 'Pick a site first.' : 'Add a site first.'; if (!state.sites.length) addingSite = true; renderClock(); return; }
+    clockMsg = ''; addingSite = false;
+    state.active = { start: Date.now(), site: sel, note: '', breakMs: 0, breakStart: null };
+    save(); renderClock();
+  }
+
+  function clockOut(){
+    var a = state.active; if (!a) return;
+    var now = Date.now();
+    var entry = { id: uid(), site: a.site, start: a.start, end: now, breakMs: breakTotal(now), note: a.note || '' };
+    state.entries.push(entry); state.active = null; weekOffset = 0;
+    save(); renderAll();
+    toast('Clocked out. ' + hm(net(entry)) + ' logged.', function(){
+      state.entries = state.entries.filter(function(e){ return e.id !== entry.id; });
+      state.active = { start: entry.start, site: entry.site, note: entry.note, breakMs: entry.breakMs, breakStart: null };
+      save(); renderAll();
+    });
+  }
+
+  function toggleBreak(){
+    var a = state.active; if (!a) return;
+    var now = Date.now();
+    if (a.breakStart) { a.breakMs = (a.breakMs || 0) + (now - a.breakStart); a.breakStart = null; }
+    else { a.breakStart = now; }
+    save(); renderClock();
+  }
+
+  /* ---------- dialog ---------- */
+  var dlg = $('#dlg');
+  function openEdit(id){
+    editingId = id || null;
+    var e = id ? state.entries.filter(function(x){ return x.id === id; })[0] : null;
+    var s, f;
+    if (e) { s = e.start; f = e.end; }
+    else {
+      var base = weekOffset === 0 ? new Date() : range().ws;
+      var a = new Date(base); a.setHours(7,0,0,0);
+      var b = new Date(base); b.setHours(15,30,0,0);
+      s = a.getTime(); f = b.getTime();
+    }
+    $('#dlgTitle').textContent = e ? 'Edit shift' : 'Add missed shift';
+    $('#fSite').value = e ? e.site : (state.lastSite || '');
+    $('#fStart').value = toLocalInput(s);
+    $('#fEnd').value = toLocalInput(f);
+    $('#fBreak').value = e ? Math.round((e.breakMs||0)/60000) : 30;
+    $('#fNote').value = e ? (e.note || '') : '';
+    $('#dlgErr').textContent = '';
+    $('#delBtn').hidden = !e;
+    dlg.showModal();
+  }
+  function saveEdit(){
+    var site = $('#fSite').value.trim();
+    var s = new Date($('#fStart').value).getTime();
+    var f = new Date($('#fEnd').value).getTime();
+    var br = Math.round(Number($('#fBreak').value || 0)) * 60000;
+    var err = $('#dlgErr');
+    if (!site) { err.textContent = 'Enter the site.'; return; }
+    if (isNaN(s) || isNaN(f)) { err.textContent = 'Enter a start and finish time.'; return; }
+    if (f <= s) { err.textContent = 'Finish time must be after the start time.'; return; }
+    if (br < 0 || br >= f - s) { err.textContent = 'Break must be shorter than the shift.'; return; }
+    site = addSite(site);
+    var note = $('#fNote').value.trim();
+    if (editingId) {
+      var e = state.entries.filter(function(x){ return x.id === editingId; })[0];
+      if (e) { e.site = site; e.start = s; e.end = f; e.breakMs = br; e.note = note; }
+    } else {
+      state.entries.push({ id: uid(), site: site, start: s, end: f, breakMs: br, note: note });
+    }
+    save(); dlg.close(); renderAll(); toast('Shift saved.');
+  }
+  function deleteEdit(){
+    var e = state.entries.filter(function(x){ return x.id === editingId; })[0];
+    if (!e) { dlg.close(); return; }
+    state.entries = state.entries.filter(function(x){ return x.id !== editingId; });
+    save(); dlg.close(); renderAll();
+    toast('Shift deleted.', function(){ state.entries.push(e); save(); renderAll(); });
+  }
+  $('#saveBtn').addEventListener('click', saveEdit);
+  $('#cancelBtn').addEventListener('click', function(){ dlg.close(); });
+  $('#delBtn').addEventListener('click', deleteEdit);
+  dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
+
+  /* ---------- copy timesheet ---------- */
+  function weekText(){
+    var r = range(), ws = r.ws, we = r.we;
+    var last = new Date(we); last.setDate(last.getDate() - 1);
+    var es = state.entries.filter(function(e){ return e.start >= ws.getTime() && e.start < we.getTime(); })
+                          .sort(function(a,b){ return a.start - b.start; });
+    var lines = [];
+    lines.push((state.name ? state.name + ' \u2013 ' : '') + 'Timesheet ' + shortDate(ws) + ' to ' + shortDate(last) + ' ' + last.getFullYear());
+    lines.push('');
+    var total = 0;
+    es.forEach(function(e){
+      total += net(e);
+      lines.push(dayLabel(new Date(e.start)) + ': ' + tm(e.start) + ' - ' + tm(e.end) +
+        (e.breakMs ? ', break ' + Math.round(e.breakMs/60000) + 'm' : '') +
+        ', ' + e.site + ', ' + dec(net(e)) + ' h' + (e.note ? ' (' + e.note + ')' : ''));
+    });
+    if (!es.length) lines.push('No shifts logged.');
+    lines.push('');
+    lines.push('Total: ' + hm(total) + ' (' + dec(total) + ' hours)');
+    return lines.join('\n');
+  }
+  function copyText(text){
+    function fallback(){
+      var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly','');
+      ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta); return ok;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ toast('Timesheet copied.'); }, function(){ toast(fallback() ? 'Timesheet copied.' : 'Could not copy. Try again.'); });
+    } else { toast(fallback() ? 'Timesheet copied.' : 'Could not copy. Try again.'); }
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('click', function(ev){
+    var t = ev.target.closest('[data-action]'); if (!t) return;
+    var act = t.getAttribute('data-action');
+    if (act === 'pick') { state.lastSite = t.getAttribute('data-site'); clockMsg = ''; save(); renderClock(); }
+    else if (act === 'newsite') { addingSite = !addingSite; renderClock(); }
+    else if (act === 'savesite') {
+      var inp = $('#newSite'); var n = addSite(inp ? inp.value : '');
+      if (!n) { clockMsg = 'Type the site name first.'; renderClock(); return; }
+      state.lastSite = n; addingSite = false; clockMsg = ''; save(); renderAll();
+    }
+    else if (act === 'in') clockIn();
+    else if (act === 'out') clockOut();
+    else if (act === 'break') toggleBreak();
+    else if (act === 'prev') { weekOffset--; renderWeek(); }
+    else if (act === 'next') { if (weekOffset < 0) { weekOffset++; renderWeek(); } }
+    else if (act === 'add') openEdit(null);
+    else if (act === 'edit') openEdit(t.getAttribute('data-id'));
+    else if (act === 'copy') copyText(weekText());
+    else if (act === 'rmsite') {
+      var s = t.getAttribute('data-site');
+      state.sites = state.sites.filter(function(x){ return x !== s; });
+      if (state.lastSite === s) state.lastSite = '';
+      save(); renderAll();
+    }
+  });
+  document.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter' && ev.target && ev.target.id === 'newSite') { ev.preventDefault(); var b = document.querySelector('[data-action="savesite"]'); if (b) b.click(); }
+  });
+  document.addEventListener('input', function(ev){
+    if (ev.target.id === 'liveNote' && state.active) { state.active.note = ev.target.value; save(); }
+    if (ev.target.id === 'nameInput') { state.name = ev.target.value.trim(); save(); }
+  });
+
+  load();
+  if (!storageOk) $('#banner').hidden = false;
+  renderAll();
+  setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) tick(); });
+})();
+</script>
+</body>
+</html>
